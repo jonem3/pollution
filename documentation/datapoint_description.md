@@ -1,7 +1,7 @@
 [Home](../README.md) | Datapoint API
 # Description of the datapoint API
 
-#####Example to get a list of sites:
+##### Example to get a list of sites:
 [http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key=2535722c-4f5e-4b85-bece-94d35f534658](http://datapoint.metoffice.gov.uk/public/data/val/wxobs/all/json/sitelist?key=2535722c-4f5e-4b85-bece-94d35f534658)
 
 Example of 1 line from the above:
@@ -116,9 +116,9 @@ We need to design a data model that will capture two relations:
 - Weather location
 - Weather observation
 
-#####Weather Location
+##### Weather Location
 
-#####Weather Observation
+##### Weather Observation
 <table>
     <thead>
         <tr>
