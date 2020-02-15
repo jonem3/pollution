@@ -35,7 +35,7 @@ class WeatherObservation(models.Model):
     temperature = models.FloatField(blank=True, null=True)
     wind_speed = models.FloatField(blank=True, null=True)
     pressure = models.FloatField(blank=True, null=True)
-    pressure_tendency = models.FloatField(blank=True, null=True)
+    pressure_tendency = models.CharField(max_length=100, blank=True, null=True)
     dew_point = models.FloatField(blank=True, null=True)
     screen_relative_humidity = models.FloatField(blank=True, null=True)
     visibility = models.CharField(max_length=255, blank=True, null=True)
