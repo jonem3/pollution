@@ -19,18 +19,27 @@ class WeatherLocation(models.Model):
     name = models.CharField(max_length=255)
     region = models.CharField(max_length=255)
     unitaryAuthArea = models.CharField(max_length=255)
-    latitude = models.FloatField()
-    longitude = models.FloatField()
+    latitude = models.FloatField(db_index=True)
+    longitude = models.FloatField(db_index=True)
     elevation = models.FloatField()
 
     class Meta:
         db_table = 'weather_location'
 
 
+class PollutionLocation(models.Model):
+    site_code = models.CharField(primary_key=True, max_length=255)
+    latitude = models.FloatField(db_index=True)
+    longitude = models.FloatField(db_index=True)
+
+    class Meta:
+        db_table = 'pollution_location'
+
+
 class WeatherObservation(models.Model):
     id = models.BigAutoField(primary_key=True)
     weather_location = models.ForeignKey(WeatherLocation, models.CASCADE)
-    time_stamp = models.DateTimeField()
+    time_stamp = models.DateTimeField(db_index=True)
     wind_gust = models.FloatField(blank=True, null=True)
     temperature = models.FloatField(blank=True, null=True)
     wind_speed = models.FloatField(blank=True, null=True)
@@ -47,3 +56,16 @@ class WeatherObservation(models.Model):
     class Meta:
         db_table = "weather_observation"
         unique_together = (('weather_location', 'time_stamp'),)
+
+class PollutionObservation(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    pollution_location = models.ForeignKey(PollutionLocation, models.CASCADE)
+    time_stamp = models.DateTimeField(db_index=True)
+    species_code = models.CharField(max_length=255, blank=False, null=False)
+    species_description = models.CharField(max_length=255, blank=True, null=True)
+    air_quality_index = models.IntegerField()
+    air_quality_band = models.CharField(max_length=255)
+
+    class Meta:
+        db_table = 'pollution_observation'
+        unique_together = (('pollution_location', 'time_stamp'),)
