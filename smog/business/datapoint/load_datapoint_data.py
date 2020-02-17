@@ -10,8 +10,10 @@ from json import JSONDecodeError
 from requests.exceptions import RequestException
 logger = logging.getLogger('weather_log')
 
-TOP_LEFT = (51.713675, -0.594479)
-BOTTOM_RIGHT = (51.273194, 0.503083)
+#TOP_LEFT = (51.713675, -0.594479)
+TOP_LEFT = (52.6565051867658, -7.55715939721731)
+#BOTTOM_RIGHT = (51.273194, 0.503083)
+BOTTOM_RIGHT = (49.7667866669653, 1.04634518982586)
 
 
 def store_observations(location, obs_path, location_current):

@@ -62,11 +62,11 @@ class PollutionObservation(models.Model):
     id = models.BigAutoField(primary_key=True)
     pollution_location = models.ForeignKey(PollutionLocation, models.CASCADE)
     time_stamp = models.DateTimeField(db_index=True)
-    species_code = models.CharField(max_length=255, blank=False, null=False)
+    species_code = models.CharField(max_length=255, blank=False, null=False, db_index=True)
     species_description = models.CharField(max_length=255, blank=True, null=True)
     air_quality_index = models.IntegerField()
     air_quality_band = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'pollution_observation'
-        unique_together = (('pollution_location', 'time_stamp'),)
+        unique_together = (('pollution_location', 'species_code', 'time_stamp'),)
