@@ -29,6 +29,7 @@ class WeatherLocation(models.Model):
 
 class PollutionLocation(models.Model):
     site_code = models.CharField(primary_key=True, max_length=255)
+    site_name = models.CharField(max_length=255, null=True, blank=True)
     latitude = models.FloatField(db_index=True)
     longitude = models.FloatField(db_index=True)
 

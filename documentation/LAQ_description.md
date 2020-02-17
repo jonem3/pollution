@@ -3,7 +3,7 @@
 #### Base URL:
 
 http://api.erg.kcl.ac.uk/AirQuality
-
+['@GroupName']
 ####Groups URL:
 Call: http://api.erg.kcl.ac.uk/AirQuality/Information/Groups/Json
 To retrieve all of the locations (groups) for the pollution data
@@ -28,6 +28,7 @@ http://api.erg.kcl.ac.uk/AirQuality/Daily/MonitoringIndex/Latest/GroupName=cityo
 ### Table Definitions
 ####TABLE pollution_location
 * COLUMN site_code <PK>
+* COLUMN site_name
 * COLUMN latitude
 * COLUMN longitude
 
