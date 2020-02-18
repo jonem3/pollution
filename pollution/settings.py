@@ -13,20 +13,25 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+import sys
 
+try:
+    from .local_settings import *
+except ImportError:
+    sys.stderr.write("You MUST create a machine-dependent local_settings.py "
+                     "in the same directory as this settings.py file. "
+                     "Copy example_local_settings.py to get started.\n"
+                     "local_settings.py is in .gitignore, so there is no "
+                     "risk of you commiting it to git")
+    sys.exit(2)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 's)gx1fgt@r@&6#iu()=5o#t#)c90%r+c+q1a8^8(ypg7#1u6r('
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -75,12 +80,6 @@ WSGI_APPLICATION = 'pollution.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
 
 
 # Password validation
@@ -105,7 +104,7 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'en-gb'
 
 TIME_ZONE = 'UTC'
 
@@ -125,24 +124,4 @@ DATAPOINT_API_KEY = "2535722c-4f5e-4b85-bece-94d35f534658"
 
 DATAPOINT_BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'file': {
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'debug.log'),
-        },
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'loggers': {
-        'weather_log': {
-            'handlers': ['file', 'console'],
-            'level': 'DEBUG' if DEBUG else 'INFO',
-            'propagate': True,
-        },
-    },
-}
+

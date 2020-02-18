@@ -1,0 +1,124 @@
+---
+
+- hosts: aws
+  remote_user: ubuntu
+  tasks:
+    # ROOT block
+    - block:
+        - debug:
+            msg: "This is a message"
+
+        - name: update and upgrade apt
+          apt:
+            upgrade: yes
+            update_cache: yes
+            force: yes
+            cache_valid_time: 86400
+
+        - name: install apt packages
+          apt:
+            name: ['mysql-server', 'mysql-client', 'python3', 'python3-pip', 'python3-setuptools', 'ntp']
+            state: present
+            update_cache: no
+            force: yes
+
+        - name: Copy root.my.cnf to the /root directory.
+          copy:
+            src: ./resources/root.my.cnf
+            dest: /root/.my.cnf
+            mode: 0600
+
+        - name: Create a new database called pollution
+          mysql_db:
+            name: pollution
+            login_user: "root"
+            login_password: ""
+            login_host: localhost
+            config_file: /root/.my.cnf
+            state: present
+
+        - name: Create database user pollute
+          mysql_user:
+            name: pollute
+            config_file: /root/.my.cnf
+            password: s1j2h3g4s5
+            priv: 'pollution.*:ALL,GRANT'
+            state: present
+
+      become: yes
+      become_user: root
+
+    - block:
+        #Block as user Ubuntu
+        - name: Copy REAMDE file to the home directory.
+          copy:
+            src: ./resources/README
+            dest: ~/
+            mode: 0444
+
+        - name: Upload source.
+          synchronize:
+            src: ../../../pollution
+            dest: /home/ubuntu
+            dirs: yes
+            rsync_opts:
+              - "--exclude=ansible"
+              - "--exclude=*.pyc"
+              - "--exclude=__pycache__"
+              - "--exclude=db.sqlite3"
+              - "--exclude=venv"
+              - "--exclude=debug.log"
+
+        - name: Create logging directories
+          file:
+            path: "{{item}}"
+            mode: 0777
+            recurse: no
+            state: directory
+          with_items:
+            - /home/ubuntu/logs
+
+        - name: Ensure not in debug mode
+          replace:
+            path: /home/ubuntu/pollution/pollution/settings.py
+            regexp: '(\s+)DEBUG\s?=\s?True'
+            replace: '\1DEBUG = False'
+
+        - name: Upload crontab
+          copy:
+            src: ./resources/crontab
+            dest: /home/ubuntu/
+
+        - name: Install crontab
+          command: crontab -i /home/ubuntu/crontab
+
+        - name: Upload store_pollution_data.sh
+          copy:
+            src: ./resources/store_pollution_data.sh
+            dest: /home/ubuntu
+            mode: 0755
+
+        - name: Upload store_weather_observations.sh
+          copy:
+            src: ./resources/store_weather_observations.sh
+            dest: /home/ubuntu
+            mode: 0755
+
+
+    # ROOT block
+    - block:
+        - name: Install python3 requirements
+          pip:
+            executable: /usr/bin/pip3
+            state: present
+            requirements: /home/ubuntu/pollution/requirements
+
+        - name: Run manage.py migrate
+          command: /usr/bin/python3 /home/ubuntu/pollution/manage.py migrate
+          args:
+            chdir: /home/ubuntu/pollution/
+
+
+
+      become: yes
+      become_user: root
