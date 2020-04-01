@@ -1,0 +1,19 @@
+mysql> select pollution_location_id, min(air_quality_index) as minimum, max(air_quality_index) as maximum from pollution_observation group by pollution_location_id order by maximum desc;
++-----------------------+---------+---------+
+| pollution_location_id | minimum | maximum |
++-----------------------+---------+---------+
+| LB5                   |       1 |       8 |
+| CA2                   |       1 |       5 |
+| BT5                   |       1 |       5 |
+| EN5                   |       1 |       5 |
+| WAA                   |       1 |       4 |
+| EB1                   |       1 |       4 |
+| GN4                   |       1 |       4 |
+| HP1                   |       1 |       4 |
+| RY1                   |       2 |       4 |
+| GR4                   |       1 |       4 |
+| TE0                   |       1 |       4 |
+| SBG                   |       1 |       4 |
+| TK1                   |       1 |       4 |
+| TK3                   |       1 |       4 |
+| KC1                   |       1 |       4 |
