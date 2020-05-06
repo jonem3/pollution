@@ -25,7 +25,7 @@ def build_tables():
             continue
         locations.append(location.name)
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
-            if obs.time_stamp not in timestamp and timestamp != None:
+            if timestamp is not None and obs.time_stamp not in timestamp:
                 timestamp.append(obs.time_stamp)
     mux = pd.MultiIndex.from_product([locations, ['wind gust',
                                                   'temperature',
@@ -38,9 +38,9 @@ def build_tables():
                                                   'precipitation probability']])
     df = pd.DataFrame(columns=mux, index=timestamp)
 
-    for location in WeatherLocation.objects.filter().order_by("id"):
+    for location in WeatherLocation.objects.all().order_by("id"):
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
-            if timestamp != None:
+            if timestamp is not None:
                 df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
                 df.xs(obs.time_stamp)[location.name, 'temperature'] = obs.temperature
                 df.xs(obs.time_stamp)[location.name, 'wind speed'] = obs.wind_speed
@@ -171,6 +171,7 @@ def build_model():
     df = build_tables()
     df.replace(to_replace=[None], value=np.nan, inplace=True)
     df = df.dropna(axis='columns')
+    print(df)
     target_location = 'Wittering'
 
     global target_names
@@ -197,7 +198,8 @@ def build_model():
 
     # Number of observations
     num_data = len(x_data)
-
+    print("num_data =", num_data)
+    print("num_data[0]=", x_data[0])
     # Defining the fraction of the data set to be used for the training set
     train_split = 0.9
     num_train = int(train_split * num_data)
@@ -269,8 +271,8 @@ def build_model():
 
     print(x_batch.shape)
     print(y_batch.shape)
-    batch = 0 # First sequence in the batch
-    signal = 0 # First signal from the 20 input-signals
+    batch = 0  # First sequence in the batch
+    signal = 0  # First signal from the 20 input-signals
     seq = x_batch[batch, :, signal]
     plt.plot(seq)
     plt.show()
@@ -306,13 +308,13 @@ def build_model():
     warmup_steps = 50
 
     # Defining the start Learning Rate we will be using
-    optimizer = tf.keras.optimizers.RMSprop(lr=1e-3)
+    optimizer = tf.keras.optimizers.RMSprop(lr=1e-10)
     # Compiles the model:
     model.compile(loss=loss_mse_warmup, optimizer=optimizer)
     model.summary()
 
     # Callback for writing checkpoints during training
-    path_checkpoint = '23_checkpoint.keras'
+    path_checkpoint = 'checkpoint.keras'
     callback_checkpoint = ModelCheckpoint(filepath=path_checkpoint,
                                           monitor='val_loss',
                                           verbose=1,
