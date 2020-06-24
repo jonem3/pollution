@@ -24,6 +24,7 @@ def build_tables():
         if location.name in locations:
             continue
         locations.append(location.name)
+        #print(location.name)
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
             if timestamp is not None and obs.time_stamp not in timestamp:
                 timestamp.append(obs.time_stamp)
@@ -32,28 +33,43 @@ def build_tables():
                                                   'wind speed',
                                                   'pressure',
                                                   'dew point',
-                                                  'screen relative humidity',
-                                                  'weather type',
-                                                  'max uv',
-                                                  'precipitation probability']])
+                                                  'screen relative humidity']])
     df = pd.DataFrame(columns=mux, index=timestamp)
 
     for location in WeatherLocation.objects.all().order_by("id"):
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
             if timestamp is not None:
-                df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
-                df.xs(obs.time_stamp)[location.name, 'temperature'] = obs.temperature
-                df.xs(obs.time_stamp)[location.name, 'wind speed'] = obs.wind_speed
-                df.xs(obs.time_stamp)[location.name, 'pressure'] = obs.pressure
+                #print("Working on: {}!".format(obs.weather_location.name))
+                if obs.wind_gust is not None:
+                    df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'wind gust'] = 0.0
+                if obs.temperature is not None:
+                    df.xs(obs.time_stamp)[location.name, 'temperature'] = obs.temperature
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'temperature'] = 0.0
+                if obs.wind_speed is not None:
+                    df.xs(obs.time_stamp)[location.name, 'wind speed'] = obs.wind_speed
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'wind speed'] = 0.0
+                if obs.pressure is not None:
+                    df.xs(obs.time_stamp)[location.name, 'pressure'] = obs.pressure
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'pressure'] = 0.0
                 # df.xs(obs.time_stamp)[location.name, 'pressure tendency'] = obs.pressure_tendency
-                df.xs(obs.time_stamp)[location.name, 'dew point'] = obs.dew_point
-                df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = obs.screen_relative_humidity
+                if obs.dew_point is not None:
+                    df.xs(obs.time_stamp)[location.name, 'dew point'] = obs.dew_point
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'dew point'] = 0.0
+                if obs.screen_relative_humidity is not None:
+                    df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = obs.screen_relative_humidity
+                else:
+                    df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = 0.0
                 # df.xs(obs.time_stamp)[location.name, 'visibility'] = obs.visibility
                 # df.xs(obs.time_stamp)[location.name, 'wind direction'] = obs.wind_direction
-                df.xs(obs.time_stamp)[location.name, 'weather type'] = obs.weather_type
-                df.xs(obs.time_stamp)[location.name, 'max uv'] = obs.max_uv
-                df.xs(obs.time_stamp)[location.name, 'precipitation probability'] = obs.precipitation_probability
-
+                #df.xs(obs.time_stamp)[location.name, 'weather type'] = obs.weather_type
+                #print(df.head)
+    #print(df.head)
     return df
 
 
@@ -169,9 +185,10 @@ def build_model():
     print("Keras version:", tf.keras.__version__)
     print("Pandas version:", pd.__version__)
     df = build_tables()
-    df.replace(to_replace=[None], value=np.nan, inplace=True)
-    df = df.dropna(axis='columns')
-    print(df)
+    print("PRE REMOVE:", df.head())
+    df.replace(to_replace=np.nan, value=0, inplace=True)
+    #df = df.dropna(axis='rows')
+    print("POST REMOTE:", df.tail())
     target_location = 'Wittering'
 
     global target_names
@@ -254,7 +271,7 @@ def build_model():
     batch_size = 256
 
     # Sequence length is each random sequence for the length of time you set
-    sequence_length = 24
+    sequence_length = 24 * 7 * 3
 
     #With our sequence length and batch size set up we can now generate the sequence batch
     generator = batch_generator(
@@ -350,8 +367,8 @@ def build_model():
     """
 
     model.fit(x=generator,
-              epochs=20,
-              steps_per_epoch=100,
+              epochs=3,
+              steps_per_epoch=10,
               validation_data=validation_data,
               callbacks=callbacks)
 
