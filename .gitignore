@@ -1,4 +1,5 @@
 venv/
+venv_new
 /db.sqlite3
 .idea/
 debug.log
