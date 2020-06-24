@@ -14,6 +14,7 @@ from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, Te
 from datetime import datetime, timedelta
 from tensorflow.keras.backend import square, mean
 
+
 # Takes data from databases and turns into a Pandas table for interaction with Tensorflow
 def build_tables():
     timestamp = []
@@ -24,7 +25,7 @@ def build_tables():
         if location.name in locations:
             continue
         locations.append(location.name)
-        #print(location.name)
+        # print(location.name)
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
             if timestamp is not None and obs.time_stamp not in timestamp:
                 timestamp.append(obs.time_stamp)
@@ -39,8 +40,9 @@ def build_tables():
     for location in WeatherLocation.objects.all().order_by("id"):
         for obs in WeatherObservation.objects.filter(weather_location__id=location.id).order_by("time_stamp"):
             if timestamp is not None:
-                #print("Working on: {}!".format(obs.weather_location.name))
-                if obs.wind_gust is not None:
+                # print("Working on: {}!".format(obs.weather_location.name))
+                """
+                                if obs.wind_gust is not None:
                     df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
                 else:
                     df.xs(obs.time_stamp)[location.name, 'wind gust'] = 0.0
@@ -65,11 +67,18 @@ def build_tables():
                     df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = obs.screen_relative_humidity
                 else:
                     df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = 0.0
+                """
+                df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
+                df.xs(obs.time_stamp)[location.name, 'temperature'] = obs.temperature
+                df.xs(obs.time_stamp)[location.name, 'wind speed'] = obs.wind_speed
+                df.xs(obs.time_stamp)[location.name, 'pressure'] = obs.pressure
+                df.xs(obs.time_stamp)[location.name, 'dew point'] = obs.dew_point
+                df.xs(obs.time_stamp)[location.name, 'screen relative humidity'] = obs.screen_relative_humidity
                 # df.xs(obs.time_stamp)[location.name, 'visibility'] = obs.visibility
                 # df.xs(obs.time_stamp)[location.name, 'wind direction'] = obs.wind_direction
-                #df.xs(obs.time_stamp)[location.name, 'weather type'] = obs.weather_type
-                #print(df.head)
-    #print(df.head)
+                # df.xs(obs.time_stamp)[location.name, 'weather type'] = obs.weather_type
+                # print(df.head)
+    # print(df.head)
     return df
 
 
@@ -91,7 +100,6 @@ def loss_mse_warmup(y_true, y_pred):
     y_pred_slice = y_pred[:, warmup_steps:, :]
     mse = mean(square(y_true_slice - y_pred_slice))
     return mse
-
 
 
 def batch_generator(batch_size, sequence_length, num_train, x_train_scaled, y_train_scaled, num_x_signals,
@@ -117,10 +125,12 @@ def batch_generator(batch_size, sequence_length, num_train, x_train_scaled, y_tr
 
         yield (x_batch, y_batch)
 
+
 def plot_comparison(start_idx, length, train, x_train_scaled, y_train, y_test, y_scaler, model, x_test_scaled):
     """
     Plot the predicted and true output-signals.
 
+    :param x_train_scaled:
     :param start_idx: Start-index for the time-series.
     :param length: Sequence-length to process and plot.
     :param train: Boolean whether to use training- or test-set.
@@ -147,7 +157,7 @@ def plot_comparison(start_idx, length, train, x_train_scaled, y_train, y_test, y
     x = np.expand_dims(x, axis=0)
 
     # Use the model to predict the output-signals.
-    y_pred = model.predict(x)
+    y_pred = model.predict(x=x)
 
     # The output of the model is between 0 and 1.
     # Do an inverse map to get it back to the scale
@@ -178,24 +188,26 @@ def plot_comparison(start_idx, length, train, x_train_scaled, y_train, y_test, y
         plt.show()
 
 
-
-
 def build_model():
     print("tensorflow version:", tf.__version__)
     print("Keras version:", tf.keras.__version__)
     print("Pandas version:", pd.__version__)
     df = build_tables()
     print("PRE REMOVE:", df.head())
-    df.replace(to_replace=np.nan, value=0, inplace=True)
-    #df = df.dropna(axis='rows')
+    df.replace(to_replace=[None], value=np.nan, inplace=True)
+    # df = df.dropna(axis='columns')
+    df = df.apply(pd.to_numeric)
+    df = df.interpolate(method='linear',
+                        axis=1,
+                        limit_direction='both')#.ffill().bfill()
     print("POST REMOTE:", df.tail())
     target_location = 'Wittering'
 
     global target_names
-    target_names = ['temperature', 'wind speed']
+    target_names = ['temperature', 'pressure']
 
     # Setting the range for when we want to predict the data (Presently set to 24 hours)
-    shift_days = 1
+    shift_days = 7
     shift_steps = shift_days * 24
     df_targets = df[target_location][target_names].shift(-shift_steps)
 
@@ -226,7 +238,7 @@ def build_model():
     # Input signals for training and test sets
     x_train = x_data[0:num_train]
     x_test = x_data[num_train:]
-    print("Input signals:", len(x_train)+len(x_test))
+    print("Input signals:", len(x_train) + len(x_test))
 
     # Output signals for training and test sets
     y_train = y_data[0:num_train]
@@ -266,14 +278,13 @@ def build_model():
     print(x_train_scaled.shape)
     print(y_train_scaled.shape)
 
-
     # Use a large batch size to keep the GPU near 100% work load
     batch_size = 256
 
     # Sequence length is each random sequence for the length of time you set
-    sequence_length = 24 * 7 * 3
+    sequence_length = 24 * 7 * 8
 
-    #With our sequence length and batch size set up we can now generate the sequence batch
+    # With our sequence length and batch size set up we can now generate the sequence batch
     generator = batch_generator(
         batch_size=batch_size,
         sequence_length=sequence_length,
@@ -325,18 +336,18 @@ def build_model():
     warmup_steps = 50
 
     # Defining the start Learning Rate we will be using
-    optimizer = tf.keras.optimizers.RMSprop(lr=1e-10)
+    optimizer = tf.keras.optimizers.RMSprop(lr=1e-2)
     # Compiles the model:
     model.compile(loss=loss_mse_warmup, optimizer=optimizer)
     model.summary()
 
     # Callback for writing checkpoints during training
-    path_checkpoint = 'checkpoint.keras'
-    callback_checkpoint = ModelCheckpoint(filepath=path_checkpoint,
-                                          monitor='val_loss',
-                                          verbose=1,
-                                          save_weights_only=True,
-                                          save_best_only=True)
+    path_checkpoint = '23_checkpoint.keras'
+    callback_checkpoint = tf.keras.callbacks.ModelCheckpoint(filepath=path_checkpoint,
+                                                             monitor='val_loss',
+                                                             verbose=1,
+                                                             save_weights_only=True,
+                                                             save_best_only=True)
 
     # Callback for stopping optimization when performance worsens on the validation set
     callback_early_stopping = EarlyStopping(monitor='val_loss',
@@ -367,13 +378,14 @@ def build_model():
     """
 
     model.fit(x=generator,
-              epochs=3,
-              steps_per_epoch=10,
+              epochs=20,
+              steps_per_epoch=100,
               validation_data=validation_data,
               callbacks=callbacks)
 
     try:
         model.load_weights(path_checkpoint)
+        print("Successful")
     except Exception as error:
         print("Error trying to load checkpoint.")
         print(error)
@@ -386,4 +398,5 @@ def build_model():
         for res, metric in zip(result, model.metrics_names):
             print("{0}: {1:.3e}".format(metric, res))
 
-    plot_comparison(start_idx=100000, length=1000, train=True,x_train_scaled=x_train_scaled, x_test_scaled=x_test_scaled, y_train=y_train,y_test=y_test,y_scaler=y_scaler,model=model)
+    plot_comparison(start_idx=0, length=1000, train=True, x_train_scaled=x_train_scaled,
+                    x_test_scaled=x_test_scaled, y_train=y_train, y_test=y_test, y_scaler=y_scaler, model=model)
