@@ -7,3 +7,7 @@ ans-env/
 matt_ext_proj.pem
 local_settings.py
 23_logs/
+*.keras
+*_logs/
+*save/
+TEST*
