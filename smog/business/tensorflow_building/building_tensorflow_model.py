@@ -86,9 +86,13 @@ def build_tables():
         pollutionstampcheck = {}
         if location.name in locations:
             print(location.unitaryAuthArea)
-            for obs in WeatherObservation.objects.filter(weather_location=location.id).order_by("time_stamp"):
+            for obs in WeatherObservation.objects.filter(
+                    weather_location=location.id
+            ).order_by("time_stamp"):
                 pollutionstampcheck[str(obs.time_stamp)] = False
-            for obs in WeatherObservation.objects.filter(weather_location=location.id).order_by("time_stamp"):
+            for obs in WeatherObservation.objects.filter(
+                    weather_location=location.id
+            ).order_by("time_stamp"):
                 if timestamp is not None:
                     df.xs(obs.time_stamp)[location.name, 'wind gust'] = obs.wind_gust
                     df.xs(obs.time_stamp)[location.name, 'temperature'] = obs.temperature
@@ -100,7 +104,10 @@ def build_tables():
                     df.xs(obs.time_stamp)[location.name, 'max uv'] = obs.max_uv
                     df.xs(obs.time_stamp)[location.name, 'precipitation probability'] = obs.precipitation_probability
                     df.xs(obs.time_stamp)[location.name, 'weather type'] = obs.weather_type
-                    for pobs in PollutionObservation.objects.filter(time_stamp=obs.time_stamp.date(), pollution_location=location_dict[location.id]).order_by("time_stamp"):
+                    for pobs in PollutionObservation.objects.filter(
+                            time_stamp=obs.time_stamp.date(),
+                            pollution_location=location_dict[location.id]
+                    ).order_by("time_stamp"):
                         if pobs.species_code == "NO2":
                             df.xs(obs.time_stamp)[location.name, 'air quality index NO2'] = pobs.air_quality_index
                         if pobs.species_code == "O3":
@@ -279,7 +286,6 @@ def build_model():
                'air quality index PM25',
                'air quality index SO2']
 
-        # Setting the range for when we want to predict the data (Presently set to 24 hours)
         shift_days = 7
         shift_steps = shift_days * 24
         df_targets = df[target_location][target_names].shift(-shift_steps)

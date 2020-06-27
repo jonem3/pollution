@@ -54,6 +54,12 @@ def build_tables(location_id):
                'air quality index PM10',
                'air quality index PM25',
                'air quality index SO2']
+    air_qualities = ['air quality index NO2',
+                     'air quality index O3',
+                     'air quality index PM10',
+                     'air quality index PM25',
+                     'air quality index SO2']
+    features = []
     for obs in WeatherObservation.objects.filter(weather_location=location_id).order_by("time_stamp"):
         if timestamp is not None and obs.time_stamp not in timestamp:
             timestamp.append(obs.time_stamp)
@@ -71,23 +77,39 @@ def build_tables(location_id):
                 "time_stamp"):
                 if pobs.species_code == "NO2":
                     reading[7] = pobs.air_quality_index
+                    if "air quality index NO2" not in features:
+                        features.append("air quality index NO2")
                 elif pobs.species_code == "O3":
                     reading[8] = pobs.air_quality_index
+                    if "air quality index O3" not in features:
+                        features.append("air quality index O3")
                 elif pobs.species_code == "PM10":
                     reading[9] = pobs.air_quality_index
+                    if "air quality index PM10" not in features:
+                        features.append("air quality index PM10")
                 elif pobs.species_code == "PM25":
                     reading[10] = pobs.air_quality_index
+                    if "air quality index PM25" not in features:
+                        features.append("air quality index PM25")
                 elif pobs.species_code == "SO2":
                     reading[11] = pobs.air_quality_index
+                    if "air quality index SO2" not in features:
+                        features.append("air quality index SO2")
                 else:
                     pass
             data.append(reading)
     df = pd.DataFrame(data=data, columns=columns, index=timestamp)
+    for i in air_qualities:
+        if i not in features:
+            df.drop(columns=[i])
+    for i in features:
+        df = df[df[i] != 0]
+        df = df[df[i].notnull()]
     df.replace(to_replace=[None], value=np.nan, inplace=True)
     df = df.astype(float)
     df = df.interpolate(method='linear', axis=0, imit_direction='both')
     df.replace(to_replace=[np.nan], value=0, inplace=True)
-    return df
+    return df, features
 
 
 def unvariate_data(dataset, start_index, end_index, history_size, target_size):
@@ -109,22 +131,18 @@ def learn():
     compare_locations()
     for location in WeatherLocation.objects.all().order_by("id"):
         if location.name in locations:
-            df = build_tables(location.id)
+            df, features_considered = build_tables(location.id)
             TRAIN_SPLIT = 1000
             tf.random.set_seed(13)
-            features_considered = ['air quality index NO2',
-                          'air quality index O3',
-                          'air quality index PM10',
-                          'air quality index PM25',
-                          'air quality index SO2']
+            #features_considered = ['air quality index NO2',
+                                   #'air quality index O3',
+                                   #'air quality index PM10',
+                                   #'air quality index PM25',
+                                   #'air quality index SO2']
             features = df[features_considered]
-            #plt.plot(features)
+            # plt.plot(features)
             # plt.show()
             dataset = features.values
             data_mean = dataset[:TRAIN_SPLIT].mean(axis=0)
-            if 0 in data_mean:
-                continue
             data_std = dataset[:TRAIN_SPLIT].std(axis=0)
-            if 0 in data_std:
-                continue
-            dataset = (dataset-data_mean)/data_std
+            dataset = (dataset - data_mean) / data_std
