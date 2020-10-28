@@ -1,11 +1,15 @@
 import math
-
 import tensorflow as tf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 import pandas as pd
+import seaborn as sns
+
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.layers.experimental import preprocessing
 
 from smog.models import WeatherLocation, PollutionLocation, WeatherObservation, PollutionObservation
 
@@ -109,40 +113,117 @@ def build_tables(location_id):
     df = df.astype(float)
     df = df.interpolate(method='linear', axis=0, imit_direction='both')
     df.replace(to_replace=[np.nan], value=0, inplace=True)
+    df['weather type'] = df['weather type'].astype(int)
     return df, features
-
-
-def unvariate_data(dataset, start_index, end_index, history_size, target_size):
-    data = []
-    labels = []
-
-    start_index = start_index + history_size
-    if end_index is None:
-        end_index = len(dataset) - target_size
-
-    for i in range(start_index, end_index):
-        indicies = range(i - history_size, i)
-        data.append(np.reshape(dataset[indicies], (history_size, 1)))
-        labels.append(dataset[i + target_size])
-    return np.array(data), np.array(labels)
 
 
 def learn():
     compare_locations()
     for location in WeatherLocation.objects.all().order_by("id"):
         if location.name in locations:
-            df, features_considered = build_tables(location.id)
-            TRAIN_SPLIT = 1000
-            tf.random.set_seed(13)
-            #features_considered = ['air quality index NO2',
-                                   #'air quality index O3',
-                                   #'air quality index PM10',
-                                   #'air quality index PM25',
-                                   #'air quality index SO2']
-            features = df[features_considered]
-            # plt.plot(features)
-            # plt.show()
-            dataset = features.values
-            data_mean = dataset[:TRAIN_SPLIT].mean(axis=0)
-            data_std = dataset[:TRAIN_SPLIT].std(axis=0)
-            dataset = (dataset - data_mean) / data_std
+            raw_df, features_considered = build_tables(location.id)
+            df = raw_df.copy()
+            print(df.tail())
+            print(df.isna().sum())
+            df['weather type'] = df['weather type'].map({0: 'Clear night',
+                                                         1: 'Sunny day',
+                                                         2: 'Partly cloudy (night)',
+                                                         3: 'Partly cloudy (day)',
+                                                         4: 'Not used',
+                                                         5: 'Mist',
+                                                         6: 'Fog',
+                                                         7: 'Cloudy',
+                                                         8: 'Overcast',
+                                                         9: 'Light rain shower (night)',
+                                                         10: 'Light rain shower (day)',
+                                                         11: 'Drizzle',
+                                                         12: 'Light rain',
+                                                         13: 'Heavy rain shower (night)',
+                                                         14: 'Heavy rain shower (day)',
+                                                         15: 'Heavy rain',
+                                                         16: 'Sleet shower (night)',
+                                                         17: 'Sleet shower (day)',
+                                                         18: 'Sleet',
+                                                         19: 'Hail shower (night)',
+                                                         20: 'Hail shower (day)',
+                                                         21: 'Hail',
+                                                         22: 'Light snow shower (night)',
+                                                         23: 'Light snow shower (day)',
+                                                         24: 'Light snow',
+                                                         25: 'Heavy snow shower (night)',
+                                                         26: 'Heavy snow shower (day)',
+                                                         27: 'Heavy snow',
+                                                         28: 'Thunder shower (night)',
+                                                         29: 'Thunder shower (day)',
+                                                         30: 'Thunder'})
+            df = pd.get_dummies(df, prefix='', prefix_sep='')
+            print(df.tail())
+            train_df = df.sample(frac=0.8, random_state=0)
+            test_df = df.drop(train_df.index)
+            sns.pairplot(train_df[['wind gust', 'temperature', 'wind speed', 'screen relative humidity', ]],
+                         diag_kind='kde')
+            plt.show()
+            print(train_df.describe().transpose())
+            air_qualities = ['air quality index NO2',
+                             'air quality index O3',
+                             'air quality index PM10',
+                             'air quality index PM25',
+                             'air quality index SO2']
+            for aq in air_qualities:
+                test_qualities(aq, train_df, test_df)
+
+
+def test_qualities(aq, train_df, test_df):
+    print(aq)
+    train_features = train_df.copy()
+    test_features = test_df.copy()
+    train_labels = train_features.drop(columns=aq)
+    test_labels = test_features.drop(columns=aq)
+
+    normalizer = preprocessing.Normalization()
+    normalizer.adapt(np.array(train_features))
+    print(normalizer.mean.numpy())
+    first = np.array(train_features[:1])
+
+    with np.printoptions(precision=2, suppress=True):
+        print('First example:', first)
+        print()
+        print('Normalized:', normalizer(first).numpy())
+
+    linear_model = tf.keras.Sequential([
+        normalizer,
+        layers.Dense(units=1)
+    ])
+
+    linear_model.predict(train_features[:10])
+    print(linear_model.layers[1].kernel)
+
+    linear_model.compile(
+        optimizer=tf.optimizers.Adam(learning_rate=0.1),
+        loss='mean_absolute_error')
+
+    history = linear_model.fit(
+        train_features, train_labels,
+        epochs=100,
+        # suppress logging
+        verbose=0,
+        # Calculate validation results on 20% of the training data
+        validation_split=0.2)
+
+    plot_loss(history, aq)
+
+    test_results = {}
+
+    test_results['linear_model'] = linear_model.evaluate(
+        test_features, test_labels, verbose=0)
+
+
+def plot_loss(history, aq):
+    plt.plot(history.history['loss'], label='loss')
+    plt.plot(history.history['val_loss'], label='val_loss')
+    plt.ylim([0, 10])
+    plt.xlabel('Epoch')
+    plt.ylabel(('Error ' + aq))
+    plt.legend()
+    plt.grid(True)
+    plt.show()
