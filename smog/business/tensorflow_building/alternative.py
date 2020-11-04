@@ -1,4 +1,6 @@
 import math
+
+
 import tensorflow as tf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -110,10 +112,10 @@ def build_tables(location_id):
         df = df[df[i] != 0]
         df = df[df[i].notnull()]
     df.replace(to_replace=[None], value=np.nan, inplace=True)
-    df = df.astype(float)
+    df = df.astype('float32')
     df = df.interpolate(method='linear', axis=0, imit_direction='both')
     df.replace(to_replace=[np.nan], value=0, inplace=True)
-    df['weather type'] = df['weather type'].astype(int)
+    df['weather type'] = df['weather type'].astype('int64')
     return df, features
 
 
@@ -125,6 +127,7 @@ def learn():
             df = raw_df.copy()
             print(df.tail())
             print(df.isna().sum())
+            """
             df['weather type'] = df['weather type'].map({0: 'Clear night',
                                                          1: 'Sunny day',
                                                          2: 'Partly cloudy (night)',
@@ -156,74 +159,44 @@ def learn():
                                                          28: 'Thunder shower (night)',
                                                          29: 'Thunder shower (day)',
                                                          30: 'Thunder'})
-            df = pd.get_dummies(df, prefix='', prefix_sep='')
+            """
+
             print(df.tail())
-            train_df = df.sample(frac=0.8, random_state=0)
-            test_df = df.drop(train_df.index)
-            sns.pairplot(train_df[['wind gust', 'temperature', 'wind speed', 'screen relative humidity', ]],
-                         diag_kind='kde')
-            plt.show()
-            print(train_df.describe().transpose())
+            print(df.dtypes)
             air_qualities = ['air quality index NO2',
                              'air quality index O3',
                              'air quality index PM10',
                              'air quality index PM25',
                              'air quality index SO2']
             for aq in air_qualities:
-                test_qualities(aq, train_df, test_df)
+                df.reset_index().plot(y=aq, x='index')
+                plt.show()
+                target = df.pop(aq)
+                dataset = tf.data.Dataset.from_tensor_slices((df.values, target.values))
+                for feat, targ in dataset.take(5):
+                    print('Features: {}, Target: {}'.format(feat, targ))
+                tf.constant(df['temperature'])
+                train_dataset = dataset.batch(25)
+                model = get_compiled_model()
+                model.fit(train_dataset, epochs=30)
+                predictions = model.predict(x=train_dataset)
+                plt.plot(predictions)
+                plt.plot(target.values)
+                plt.ylabel("Pollution")
+                plt.show()
+                print(predictions)
 
 
-def test_qualities(aq, train_df, test_df):
-    print(aq)
-    train_features = train_df.copy()
-    test_features = test_df.copy()
-    train_labels = train_features.drop(columns=aq)
-    test_labels = test_features.drop(columns=aq)
-
-    normalizer = preprocessing.Normalization()
-    normalizer.adapt(np.array(train_features))
-    print(normalizer.mean.numpy())
-    first = np.array(train_features[:1])
-
-    with np.printoptions(precision=2, suppress=True):
-        print('First example:', first)
-        print()
-        print('Normalized:', normalizer(first).numpy())
-
-    linear_model = tf.keras.Sequential([
-        normalizer,
-        layers.Dense(units=1)
+def get_compiled_model():
+    model = tf.keras.Sequential([
+        tf.keras.layers.Dense(10, activation='tanh'),
+        tf.keras.layers.Dense(10, activation='tanh'),
+        tf.keras.layers.Dense(1),
     ])
-
-    linear_model.predict(train_features[:10])
-    print(linear_model.layers[1].kernel)
-
-    linear_model.compile(
-        optimizer=tf.optimizers.Adam(learning_rate=0.1),
-        loss='mean_absolute_error')
-
-    history = linear_model.fit(
-        train_features, train_labels,
-        epochs=100,
-        # suppress logging
-        verbose=0,
-        # Calculate validation results on 20% of the training data
-        validation_split=0.2)
-
-    plot_loss(history, aq)
-
-    test_results = {}
-
-    test_results['linear_model'] = linear_model.evaluate(
-        test_features, test_labels, verbose=0)
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=1e-3),
+                  loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+                  metrics=['accuracy'])
+    return model
 
 
-def plot_loss(history, aq):
-    plt.plot(history.history['loss'], label='loss')
-    plt.plot(history.history['val_loss'], label='val_loss')
-    plt.ylim([0, 10])
-    plt.xlabel('Epoch')
-    plt.ylabel(('Error ' + aq))
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+
