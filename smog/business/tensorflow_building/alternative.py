@@ -172,12 +172,14 @@ def learn():
                 df.reset_index().plot(y=aq, x='index')
                 plt.show()
                 target = df.pop(aq)
+                print(df.values)
                 dataset = tf.data.Dataset.from_tensor_slices((df.values, target.values))
                 for feat, targ in dataset.take(5):
                     print('Features: {}, Target: {}'.format(feat, targ))
                 tf.constant(df['temperature'])
                 train_dataset = dataset.batch(25)
-                model = get_compiled_model()
+                print(df.shape)
+                model = get_compiled_model(dataset)
                 model.fit(train_dataset, epochs=30)
                 predictions = model.predict(x=train_dataset)
                 plt.plot(predictions)
@@ -187,13 +189,12 @@ def learn():
                 print(predictions)
 
 
-def get_compiled_model():
-    model = tf.keras.Sequential([
-        tf.keras.layers.Dense(10, activation='tanh'),
-        tf.keras.layers.Dense(10, activation='tanh'),
-        tf.keras.layers.Dense(1),
-    ])
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=1e-3),
+def get_compiled_model(dataset):
+    inputs = tf.keras.Input(shape=dataset)
+    x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
+    outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=0.01),
                   loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
                   metrics=['accuracy'])
     return model
