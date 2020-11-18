@@ -272,7 +272,7 @@ def build_model():
     #df = df.dropna(axis="columns")
     df.replace(to_replace=[np.nan], value=0, inplace=True)
 
-    print("POST REMOTE:", df.tail())
+    print("POST REMOVE:", df.tail())
     # target_location = 'Heathrow'
 
     #for target_location in locations:

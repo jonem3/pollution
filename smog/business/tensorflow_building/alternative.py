@@ -1,6 +1,6 @@
 import math
 
-
+from sklearn.preprocessing import MinMaxScaler
 import tensorflow as tf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -168,14 +168,34 @@ def learn():
                              'air quality index PM10',
                              'air quality index PM25',
                              'air quality index SO2']
+
+            features = ['wind gust',
+                       'temperature',
+                       'wind speed',
+                       'screen relative humidity',
+                       'weather type',
+                       'max uv',
+                       'precipitation probability']
+
+
+
+
+
+
+
             for aq in air_qualities:
                 df.reset_index().plot(y=aq, x='index')
                 plt.show()
-                target = df.pop(aq)
-                print(df.values)
-                dataset = tf.data.Dataset.from_tensor_slices((df.values, target.values))
-                for feat, targ in dataset.take(5):
+
+                dataset = tf.data.Dataset.from_tensor_slices(
+                    (
+                        tf.cast(df[features].values, tf.float32),
+                        tf.cast(df[aq].values, tf.float32)
+                    )
+                )
+                for feat, targ in dataset.take(20):
                     print('Features: {}, Target: {}'.format(feat, targ))
+
                 tf.constant(df['temperature'])
                 train_dataset = dataset.batch(25)
                 print(df.shape)
@@ -183,21 +203,29 @@ def learn():
                 model.fit(train_dataset, epochs=30)
                 predictions = model.predict(x=train_dataset)
                 plt.plot(predictions)
-                plt.plot(target.values)
+                plt.plot(df[aq].values)
                 plt.ylabel("Pollution")
                 plt.show()
                 print(predictions)
 
 
+
 def get_compiled_model(dataset):
-    inputs = tf.keras.Input(shape=dataset)
-    x = tf.keras.layers.Dense(4, activation=tf.nn.relu)(inputs)
-    outputs = tf.keras.layers.Dense(5, activation=tf.nn.softmax)(x)
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(lr=0.01),
-                  loss=tf.keras.losses.BinaryCrossentropy(from_logits=True),
+    model = tf.keras.Sequential(
+        [
+            tf.keras.layers.Dense(512),
+            tf.keras.layers.Dense(256),
+            tf.keras.layers.Dense(128),
+            tf.keras.layers.Dense(64),
+            tf.keras.layers.Dense(32),
+            tf.keras.layers.Dense(16),
+            tf.keras.layers.Dense(8),
+            tf.keras.layers.Dense(
+                4, activation=tf.nn.softmax
+            )
+        ]
+    )
+    model.compile(optimizer=tf.keras.optimizers.Adam(),
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
                   metrics=['accuracy'])
     return model
-
-
-
