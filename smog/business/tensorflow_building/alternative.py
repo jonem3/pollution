@@ -213,8 +213,8 @@ def learn():
 def get_compiled_model(dataset):
     model = tf.keras.Sequential(
         [
-            tf.keras.layers.Dense(512),
-            tf.keras.layers.Dense(256),
+            # tf.keras.layers.Dense(512),
+            # tf.keras.layers.Dense(256),
             tf.keras.layers.Dense(128),
             tf.keras.layers.Dense(64),
             tf.keras.layers.Dense(32),
@@ -226,6 +226,6 @@ def get_compiled_model(dataset):
         ]
     )
     model.compile(optimizer=tf.keras.optimizers.Adam(),
-                  loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+                  loss=tf.keras.losses.MeanSquaredError(),
                   metrics=['accuracy'])
     return model
