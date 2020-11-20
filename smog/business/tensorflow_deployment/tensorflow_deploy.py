@@ -6,7 +6,7 @@ import requests
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow import keras
 from tensorflow.keras.backend import square, mean
-
+import tensorflow as tf
 import pandas as pd
 from smog.models import WeatherLocation, PollutionLocation
 from django.conf import settings
@@ -16,36 +16,15 @@ columns = ['wind gust',
           'wind speed',
           'screen relative humidity',
           'weather type',
-          'max uv',
-          'precipitation probability']
+           'visibility']
+air_qualities = ['air quality index NO2',
+                     'air quality index O3',
+                     'air quality index PM10',
+                     'air quality index PM25',
+                     'air quality index SO2']
 timestamps = []
 locations = []
-
-def loss_mse_warmup(y_true, y_pred):
-    """
-    y_true_slice = y_true[:, warmup_steps:, :]
-    y_pred_slice = y_pred[:, warmup_steps:, :]
-    loss = tf.losses.mse(y_true_slice, y_pred_slice)
-
-    loss_mean = tf.reduce_mean(loss)
-
-    return loss_mean
-
-    :param y_true:
-    :param y_pred:
-    :return:
-    """
-    warmup_steps = 50
-    y_true_slice = y_true[:, warmup_steps:, :]
-    y_pred_slice = y_pred[:, warmup_steps:, :]
-    mse = mean(square(y_true_slice - y_pred_slice))
-    return mse
-
-
-model = keras.models.load_model("Bensonsave", custom_objects={'loss_mse_warmup': loss_mse_warmup})
 frcstpath = "val/wxfcs/all/json/{}"
-
-
 
 def compare_locations():
     for location in WeatherLocation.objects.all().order_by("id"):
@@ -70,10 +49,12 @@ def compare_locations():
 
 
 def get_data():
-    location = input("Enter the location (testing purposes): ")
-    locationid = ""
-    for location in WeatherLocation.objects.filter(name=location).order_by("id"):
-        locationid = location.id
+    location = WeatherLocation.objects.all()
+    for i in location:
+        loc = i.name
+        test(loc)
+def test(location):
+    locationid = WeatherLocation.objects.filter(name=location).order_by("id").first().id
     dataurl = "{}{}?res=daily&key={}".format(settings.DATAPOINT_BASE_URL, frcstpath.format(locationid),
                                                settings.DATAPOINT_API_KEY)
     r = requests.get(dataurl)
@@ -82,25 +63,41 @@ def get_data():
     if 200 <= status < 300:
         print(r.text)
         data = json.loads(r.text)
-        #print(data)
-    pandadata = []
+
     for i in data['SiteRep']['DV']['Location']['Period']:
         for j in i['Rep']:
             if j['$'] == 'Day':
                 date = i['value']
                 date += " 12:00"
                 time = datetime.strptime(date, "%Y-%m-%dZ %H:%M")
+                print(time)
                 timestamps.append(time)
-                info = [int(j['Gn']), int(j['Dm']), int(j['S']), int(j['Hn']), int(j['W']), int(j['U']),
-                        int(j['PPd'])]
-            else:
-                date = i['value']
-                date += " 00:00"
-                time = datetime.strptime(date, "%Y-%m-%dZ %H:%M")
-                timestamps.append(time)
-                info = [int(j['Gm']), int(j['Nm']), int(j['S']), int(j['Hm']), int(j['W']), 0, int(j['PPn'])]
-            tabledata.append(info)
+                info = [int(j['Gn']), int(j['Dm']), int(j['S']), int(j['Hn']), int(j['W']), str(j['V'])]
+                print(info)
+                tabledata.append(info)
+
+    print(tabledata)
+    print(columns)
+    print(timestamps)
     df = pd.DataFrame(np.array(tabledata), columns=columns, index=timestamps)
     print(df.head())
-    prediction = model.predict(df)
-    print(prediction)
+    df['visibility'] = df['visibility'].map({
+        "UN": 0,
+        "VP": 500,
+        "PO": 2000,
+        "MO": 9000,
+        "GO": 15000,
+        "VG": 30000,
+        "EX": 40000
+    })
+    df = df.astype('float32')
+    print(df.head())
+    print(df.dtypes)
+
+    for i in air_qualities:
+        print(i)
+        model = tf.keras.models.load_model(str(i) + "_model")
+        results = model.predict(df).flatten()
+        for i in range(len(results)):
+            results[i] = int(round(results[i]))
+        print(results)
