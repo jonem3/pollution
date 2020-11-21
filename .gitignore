@@ -11,3 +11,4 @@ local_settings.py
 *_logs/
 *save/
 TEST*
+air quality index*/
