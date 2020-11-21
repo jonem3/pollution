@@ -120,6 +120,11 @@ USE_TZ = False
 
 STATIC_URL = '/static/'
 
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+STATIC_ROOT = os.path.join(BASE_DIR, 'apache_static')
+
 DATAPOINT_API_KEY = "2535722c-4f5e-4b85-bece-94d35f534658"
 
 DATAPOINT_BASE_URL = "http://datapoint.metoffice.gov.uk/public/data/"

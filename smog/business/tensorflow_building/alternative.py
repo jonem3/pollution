@@ -28,7 +28,7 @@ def compare_locations():
         for pollution_location in PollutionLocation.objects.all().order_by("site_code"):
             pollution_lat = pollution_location.latitude
             pollution_long = pollution_location.longitude
-            distance = (3958 * 3.1415926 * math.sqrt(
+            distance = (3958 * math.pi * math.sqrt(
                 ((pollution_lat - weather_lat) ** 2) + (math.cos(weather_lat / 57.29578) ** 2) * (
                         (pollution_long - weather_long) ** 2)) / 180)
             if distance < closest_dist:
@@ -107,7 +107,7 @@ def build_tables2():
     df['weather type'] = df['weather type'].astype('int64')
     return df, features
 
-
+"""
 def build_tables(location_id):
     data = []
     timestamp = []
@@ -171,6 +171,8 @@ def build_tables(location_id):
     df.replace(to_replace=[np.nan], value=0, inplace=True)
     df['weather type'] = df['weather type'].astype('int64')
     return df, features
+"""
+
 
 
 def learn():
@@ -263,9 +265,9 @@ def learn():
         train_labels = trainable_qualities.pop(aq)
         linear_model = tf.keras.Sequential([
             normalizer,
-            layers.Dense(64, activation='sigmoid'), # Change from relu
-            layers.Dense(64, activation='sigmoid'),
-            layers.Dense(64, activation='sigmoid'),
+            layers.Dense(64, activation='tanh'), # Change from relu
+            layers.Dense(64, activation='tanh'),
+            layers.Dense(64, activation='tanh'),
             layers.Dense(1)
         ])
         print(linear_model.summary())
@@ -367,7 +369,7 @@ def plot_loss(history):
     plt.grid(True)
     plt.show()
 
-
+"""
 def get_compiled_model(dataset):
     model = tf.keras.Sequential(
         [
@@ -387,3 +389,4 @@ def get_compiled_model(dataset):
                   loss=tf.keras.losses.MeanSquaredError(),
                   metrics=['accuracy'])
     return model
+"""

@@ -1,0 +1,67 @@
+    h1 {
+        color: black;
+        font-family: Impact, Charcoal, sans-serif;
+        font-size: 300%;
+    }
+
+    p {
+        color: black;
+        font-family: 'Oxygen';
+        font-size: 130%;
+    }
+
+    canvas {
+        width: available;
+        height: available;
+    }
+
+    html {
+        background-image: url(/static/img/page_background.png);
+        background-color: lightcyan;
+        height: 100%;
+        background-repeat: repeat;
+        background-position: center;
+        background-size: cover;
+        margin: 0;
+    }
+
+    iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+    }
+
+    body {
+        border-radius: 10px;
+        background-color: hsla(240, 100%, 100%, 0);
+        position: relative;
+    }
+
+
+    .background {
+        border-radius: 10px;
+        background-color: hsla(240, 100%, 100%, 0.75);
+        position: relative;
+        overflow: hidden;
+        padding-top: 5px;
+    }
+
+    * {
+        padding: 5px;
+        margin: 0;
+    }
+
+    .vertical-center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        -ms-transform: translateY(-50%);
+        transform: translateY(-50%);
+    }
+
+    .map {
+        height: 450px;
+        width: 100%;
+    }
