@@ -14,9 +14,10 @@
 <head>
     <script src="{% static 'js/jquery-3.5.1.min.js' %}"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css">
-    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8"
+            src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
     <script src="{% static 'js/home.js' %}"></script>
-    <link rel="shortcut icon" href="{% static 'img/favicon.png'%}" type='image/x-icon'>
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}" type='image/x-icon'>
     <title>EPQ Page Title</title>
 
     <nav class="navbar navbar-expand-lg navbar-light background">
@@ -35,26 +36,27 @@
         </div>
     </nav>
 
-{#    <center><img src=/static/logo%201%5B3266%5D.png alt="Pollution Prediction" width="400px" height="auto"></center>#}
+    {#    <center><img src=/static/logo%201%5B3266%5D.png alt="Pollution Prediction" width="400px" height="auto"></center>#}
 </head>
 
 
 <body>
-<div style="text-align: center;">
+
 <div class="container">
-    <div class="row">
-            <div class="background">
-                <div style="text-align: center;"><p>This website provides data about pollution predicted from a Neural Network in the form of a Tensorflow Model<br><br>
-                    This model has been trained on data from the Met Office as well as London Air Quality
-                </p>
-                </div>
+    <div class="row justify-content-center">
+        <div class="background">
+            <div style="text-align: center;"><p>This website provides data about pollution predicted from a Neural
+                Network in the form of a Tensorflow Model<br><br>
+                This model has been trained on data from the Met Office as well as London Air Quality
+            </p>
             </div>
+        </div>
     </div>
 </div>
-</div>
-<div style="text-align: center;">
-    <div class="container">
-    <div class="row">
+
+
+<div class="container">
+    <div class="row justify-content-center">
         <div class="background">
             <select id="location_drop" data-ajax-url="{% url 'pollution' %}">
                 <option value="">Select a location</option>
@@ -69,40 +71,36 @@
             <label for="vehicle2"> O3</label>
             <input type="checkbox" id="PM10" name="PM10" value="air quality index PM10" class="air_index">
             <label for="vehicle3"> PM10</label>
-        <input type="checkbox" id="PM25" name="PM25" value="air quality index PM25" class="air_index">
+            <input type="checkbox" id="PM25" name="PM25" value="air quality index PM25" class="air_index">
             <label for="vehicle3"> PM25</label>
-        <input type="checkbox" id="SO2" name="SO2" value="air quality index SO2" class="air_index">
+            <input type="checkbox" id="SO2" name="SO2" value="air quality index SO2" class="air_index">
             <label for="vehicle3"> SO2</label>
 
 
         </div>
+
     </div>
 </div>
-</div>
-<div style="text-align: center;">
-    <div class="container">
-    <div class="row">
+
+<div class="container">
+    <div class="row justify-content-center">
         <div class="background">
             <center>
                 <div id="results"></div>
             </center>
 
 
-
         </div>
     </div>
 </div>
-</div>
 
 
-
-
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-            crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
-            integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
-            crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
 
 </body>
 </html>

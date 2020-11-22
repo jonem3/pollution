@@ -10,7 +10,7 @@ function renderResults(jason) {
                 data[count].push(timestamp);
             }
             data[count].push(jason[quality][timestamp]);
-            count ++;
+            count++;
         }
 
         qualities.push(quality);
