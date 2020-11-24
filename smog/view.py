@@ -38,7 +38,7 @@ def pollution(request):
 
         if 200 <= status < 300:
             data = json.loads(r.text)
-            print(data)
+            # print(data)
             for i in data['SiteRep']['DV']['Location']['Period']:
                 for j in i['Rep']:
                     if j['$'] == 'Day':
