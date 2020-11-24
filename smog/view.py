@@ -1,7 +1,3 @@
-from django.views.generic import TemplateView
-
-# main = TemplateView.as_view(template_name='main.html')
-
 import json
 from django.http import JsonResponse
 from smog.models import WeatherLocation
@@ -12,6 +8,9 @@ import pandas as pd
 import numpy as np
 import tensorflow as tf
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import TemplateView
+
+about = TemplateView.as_view(template_name='explain.html')
 
 @csrf_exempt
 def pollution(request):

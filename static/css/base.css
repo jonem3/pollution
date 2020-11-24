@@ -84,3 +84,7 @@ body {
     height: 450px;
     width: 100%;
 }
+img{
+    height: auto;
+    width: 90%;
+}
