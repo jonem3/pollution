@@ -1,11 +1,12 @@
 import json
-from django.http import JsonResponse
-from django.conf import settings
-import requests
 from datetime import datetime
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+import requests
 import tensorflow as tf
+from django.conf import settings
+from django.http import JsonResponse
 from django.views.generic import TemplateView
 
 about = TemplateView.as_view(template_name='explain.html')
