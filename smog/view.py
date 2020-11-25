@@ -8,9 +8,11 @@ import tensorflow as tf
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.generic import TemplateView
+from django.views.decorators.csrf import csrf_exempt
 
 about = TemplateView.as_view(template_name='explain.html')
 
+@csrf_exempt
 def pollution(request):
     tabledata = []
     timestamps = []
