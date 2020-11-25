@@ -15,6 +15,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import sys
 
+"""
 try:
     from .local_settings import *
 except ImportError:
@@ -24,6 +25,55 @@ except ImportError:
                      "local_settings.py is in .gitignore, so there is no "
                      "risk of you commiting it to git")
     sys.exit(2)
+"""
+
+# Taken back from localsettings:
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SECRET_KEY = 'my_incredibly_secret_key'
+
+DEBUG = True
+
+ALLOWED_HOSTS = ['*']
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'pollution',
+        #'NAME': 'pollution_local',
+        'USER': 'pollute',
+        #'PASSWORD': 'Scopyu7Queg:',
+        'PASSWORD': 's1j2h3g4s5',
+        'HOST': '3.10.154.114',
+        #'HOST': '127.0.0.1',
+        'PORT': '3306',
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+        },
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'weather_log': {
+            'handlers': ['file', 'console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# End Local Settings Take Back
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
