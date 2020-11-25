@@ -1,18 +1,15 @@
 import json
 from django.http import JsonResponse
-from smog.models import WeatherLocation
 from django.conf import settings
 import requests
 from datetime import datetime
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 
 about = TemplateView.as_view(template_name='explain.html')
 
-@csrf_exempt
 def pollution(request):
     tabledata = []
     timestamps = []
