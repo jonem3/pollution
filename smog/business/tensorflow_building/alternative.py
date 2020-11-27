@@ -1,4 +1,6 @@
 import math
+import os
+
 import tensorflow as tf
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -7,6 +9,8 @@ import pandas as pd
 import seaborn as sns
 from tensorflow.keras import layers
 from tensorflow.keras.layers.experimental import preprocessing
+
+from pollution.settings import STATICFILES_DIRS
 from smog.models import WeatherLocation, PollutionLocation, WeatherObservation, PollutionObservation
 
 location_dict = {}
@@ -328,7 +332,7 @@ def learn():
         plt.xlabel('Prediction Error ' + str(aq))
         _ = plt.ylabel('Count')
         plt.show()
-        modelname = str(aq) + "_model"
+        modelname = os.path.join(STATICFILES_DIRS[0], (str(aq) + "_model"))
         linear_model.save(modelname)
 
     """

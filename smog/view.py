@@ -1,6 +1,7 @@
 import json
+import os
 from datetime import datetime
-
+from pollution.settings import STATICFILES_DIRS
 import numpy as np
 import pandas as pd
 import requests
@@ -61,7 +62,7 @@ def pollution(request):
             df = df.astype('float32')
             for q in quality:
                 qdata = {}
-                model = tf.keras.models.load_model(str(q) + "_model")
+                model = tf.keras.models.load_model(os.path.join(STATICFILES_DIRS[0], (str(q) + "_model")))
                 results = model.predict(df).flatten()
                 for i in range(len(results)):
                     results[i] = int(round(results[i]))
