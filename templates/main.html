@@ -49,39 +49,30 @@
     <div class="row justify-content-center">
         <div class="background">
             <div style="text-align: center;"><p>This website provides data about pollution predicted from a Neural
-                Network in the form of a Tensorflow Model<br><br>
-                This model has been trained on data from the Met Office as well as London Air Quality
+                Network in the form of a Tensorflow Model.<br>
+                This model has been trained on data from the Met Office as well as London Air Quality.<br>
+                Below you can select the types of pollution you wish to observe along with the specific location:
             </p>
             </div>
-        </div>
-    </div>
-</div>
-
-
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="background">
-        <p>Select a location and the types of pollution you wish to observe below:</p>
-        <center>
-            <select id="location_drop" data-ajax-url="{% url 'pollution' %}">
-                <option value="">Select a location</option>
-                {% for location in locations %}
-                    <option value="{{ location.id }}">{{ location.name }}</option>
-                {% endfor %}
-            </select>
-    <br>
-            <input type="checkbox" id="NO2" name="NO2" value="air quality index NO2" class="air_index">
-            <label for="vehicle1"> NO2 (Nitrogen Dioxide)</label><br>
-            <input type="checkbox" id="O3" name="O3" value="air quality index O3" class="air_index">
-            <label for="vehicle2"> O3 (Ozone)</label><br>
-            <input type="checkbox" id="PM10" name="PM10" value="air quality index PM10" class="air_index">
-            <label for="vehicle3"> PM10 (Particulate Matter 10µm )</label><br>
-            <input type="checkbox" id="PM25" name="PM25" value="air quality index PM25" class="air_index">
-            <label for="vehicle3"> PM25 (Particulate Matter 2.5µm)</label><br>
-            <input type="checkbox" id="SO2" name="SO2" value="air quality index SO2" class="air_index">
-            <label for="vehicle3"> SO2 (Sulphur Dioxide)</label><br>
-        </center>
-
+            <center>
+                <select id="location_drop" data-ajax-url="{% url 'pollution' %}">
+                    <option value="">Select a location</option>
+                    {% for location in locations %}
+                        <option value="{{ location.id }}">{{ location.name }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+                <input type="checkbox" id="NO2" name="NO2" value="air quality index NO2" class="air_index">
+                <label for="vehicle1"> NO2 (Nitrogen Dioxide)</label><br>
+                <input type="checkbox" id="O3" name="O3" value="air quality index O3" class="air_index">
+                <label for="vehicle2"> O3 (Ozone)</label><br>
+                <input type="checkbox" id="PM10" name="PM10" value="air quality index PM10" class="air_index">
+                <label for="vehicle3"> PM10 (Particulate Matter 10µm )</label><br>
+                <input type="checkbox" id="PM25" name="PM25" value="air quality index PM25" class="air_index">
+                <label for="vehicle3"> PM25 (Particulate Matter 2.5µm)</label><br>
+                <input type="checkbox" id="SO2" name="SO2" value="air quality index SO2" class="air_index">
+                <label for="vehicle3"> SO2 (Sulphur Dioxide)</label><br>
+            </center>
 
 
         </div>
