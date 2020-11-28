@@ -47,9 +47,6 @@ tensorboard-plugin-wit
 tensorflow
 tensorflow-estimator
 termcolor
-torch
-torchaudio
-torchvision
 typing-extensions
 urllib3
 Werkzeug
