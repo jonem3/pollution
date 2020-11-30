@@ -34,10 +34,6 @@ SECRET_KEY = 'my_incredibly_secret_key'
 
 DEBUG = True
 
-SECURE_PROXY_SSL_HEADER = True
-
-SECURE_SSL_REDIRECT = True
-
 ALLOWED_HOSTS = ['*']
 
 DATABASES = {
