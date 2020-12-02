@@ -46,7 +46,7 @@ function sendQuery() {
         console.log(requestJson)
         $.ajax({
             url: locn.attr("data-ajax-url"),
-            type: "GET",
+            type: "POST",
             data: JSON.stringify(requestJson),
             contentType: "application/json; charset=utf-8",
             dataType: "json"
