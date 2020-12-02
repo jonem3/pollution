@@ -80,7 +80,7 @@ def pollution(request):
                'weather type',
                'visibility']
     if request.method == "GET":
-        jason = json.loads(request.body.decode('utf-8'))
+        jason = json.loads(request.headers.decode('utf-8'))
         print(jason)
         locationid = jason['location']
         quality = jason['quality']
