@@ -64,7 +64,6 @@ def build_tables2():
                'wind speed',
                'screen relative humidity',
                'weather type',
-               # 'pressure',
                'visbility',
                'air quality index NO2',
                'air quality index O3',
@@ -86,8 +85,7 @@ def build_tables2():
                        obs.visibility, None, None, None, None, None]
             for pobs in PollutionObservation.objects.filter(time_stamp=obs.time_stamp.date(),
                                                             pollution_location=location_dict[
-                                                                obs.weather_location_id]).order_by(
-                "time_stamp"):
+                                                                obs.weather_location_id]).order_by("time_stamp"):
                 if pobs.species_code == "NO2":
                     reading[6] = pobs.air_quality_index
                     if "air quality index NO2" not in features:
@@ -126,72 +124,6 @@ def build_tables2():
     return df, features
 
 
-"""
-def build_tables(location_id):
-    data = []
-    timestamp = []
-    columns = ['wind gust',
-               'temperature',
-               'wind speed',
-               'screen relative humidity',
-               'weather type',
-               'air quality index NO2',
-               'air quality index O3',
-               'air quality index PM10',
-               'air quality index PM25',
-               'air quality index SO2']
-    air_qualities = ['air quality index NO2',
-                     'air quality index O3',
-                     'air quality index PM10',
-                     'air quality index PM25',
-                     'air quality index SO2']
-    features = []
-    for obs in WeatherObservation.objects.filter(weather_location=location_id).order_by("time_stamp"):
-        if timestamp is not None and obs.time_stamp not in timestamp:
-            timestamp.append(obs.time_stamp)
-        if timestamp is not None:
-            reading = [obs.wind_gust, obs.temperature, obs.wind_speed, obs.screen_relative_humidity, obs.weather_type, None, None, None, None, None]
-            for pobs in PollutionObservation.objects.filter(time_stamp=obs.time_stamp.date(),
-                                                            pollution_location=location_dict[location_id]).order_by(
-                "time_stamp"):
-                if pobs.species_code == "NO2":
-                    reading[5] = pobs.air_quality_index
-                    if "air quality index NO2" not in features:
-                        features.append("air quality index NO2")
-                elif pobs.species_code == "O3":
-                    reading[6] = pobs.air_quality_index
-                    if "air quality index O3" not in features:
-                        features.append("air quality index O3")
-                elif pobs.species_code == "PM10":
-                    reading[7] = pobs.air_quality_index
-                    if "air quality index PM10" not in features:
-                        features.append("air quality index PM10")
-                elif pobs.species_code == "PM25":
-                    reading[8] = pobs.air_quality_index
-                    if "air quality index PM25" not in features:
-                        features.append("air quality index PM25")
-                elif pobs.species_code == "SO2":
-                    reading[9] = pobs.air_quality_index
-                    if "air quality index SO2" not in features:
-                        features.append("air quality index SO2")
-                else:
-                    pass
-            data.append(reading)
-    df = pd.DataFrame(data=data, columns=columns, index=timestamp)
-    for i in air_qualities:
-        if i not in features:
-            df.drop(columns=[i])
-    for i in features:
-        df = df[df[i] != 0]
-        df = df[df[i].notnull()]
-    df.replace(to_replace=[None], value=np.nan, inplace=True)
-    df = df.astype('float32')
-    df = df.interpolate(method='linear', axis=0, imit_direction='both')
-    df.replace(to_replace=[np.nan], value=0, inplace=True)
-    df['weather type'] = df['weather type'].astype('int64')
-    return df, features
-"""
-
 
 def learn():
     compare_locations()
@@ -202,40 +134,6 @@ def learn():
     print(df.tail())
     print(df.isna().sum())
 
-    """
-     # Convert weather type to One-Hot
-    df['weather type'] = df['weather type'].map({0: 'Clear night',
-                                                 1: 'Sunny day',
-                                                 2: 'Partly cloudy (night)',
-                                                 3: 'Partly cloudy (day)',
-                                                 4: 'Not used',
-                                                 5: 'Mist',
-                                                 6: 'Fog',
-                                                 7: 'Cloudy',
-                                                 8: 'Overcast',
-                                                 9: 'Light rain shower (night)',
-                                                 10: 'Light rain shower (day)',
-                                                 11: 'Drizzle',
-                                                 12: 'Light rain',
-                                                 13: 'Heavy rain shower (night)',
-                                                 14: 'Heavy rain shower (day)',
-                                                 15: 'Heavy rain',
-                                                 16: 'Sleet shower (night)',
-                                                 17: 'Sleet shower (day)',
-                                                 18: 'Sleet',
-                                                 19: 'Hail shower (night)',
-                                                 20: 'Hail shower (day)',
-                                                 21: 'Hail',
-                                                 22: 'Light snow shower (night)',
-                                                 23: 'Light snow shower (day)',
-                                                 24: 'Light snow',
-                                                 25: 'Heavy snow shower (night)',
-                                                 26: 'Heavy snow shower (day)',
-                                                 27: 'Heavy snow',
-                                                 28: 'Thunder shower (night)',
-                                                 29: 'Thunder shower (day)',
-                                                 30: 'Thunder'})
-    """
 
     df = pd.get_dummies(df, prefix='', prefix_sep='')
     print(df.tail())
