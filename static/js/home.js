@@ -2,6 +2,7 @@ function renderResults(jason) {
     var timestamps = [];
     var data = [[], [], [], [], []]
     var qualities = []
+    console.log(jason);
     for (var quality in jason) {
         let count = 0;
         for (var timestamp in jason[quality]) {

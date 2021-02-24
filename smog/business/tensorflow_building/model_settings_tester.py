@@ -22,7 +22,42 @@ locations = []
 mpl.rcParams['figure.figsize'] = (8, 6)
 mpl.rcParams['axes.grid'] = False
 
+hyperparameters = {'air quality index NO2': {
+    'units_1': 64,
+    'activation_1': 'relu',
+    'units_2': 16,
+    'activation_2': 'softmax',
+    'optimizer': 'adam'
+},
+    'air quality index O3': {
+        'units_1': 128,
+        'activation_1': 'tanh',
+        'units_2': 128,
+        'activation_2': 'softmax',
+        'optimizer': 'sgd'
+    },
+    'air quality index PM10': {
+        'units_1': 64,
+        'activation_1': 'sigmoid',
+        'units_2': 32,
+        'activation_2': 'softmax',
+        'optimizer': 'sgd'
+    },
+    'air quality index PM25': {
+        'units_1': 256,
+        'activation_1': 'sigmoid',
+        'units_2': 32,
+        'activation_2': 'softmax',
+        'optimizer': 'sgd'
 
+    },
+    'air quality index SO2': {
+        'units_1': 256,
+        'activation_1': 'tanh',
+        'units_2': 32,
+        'activation_2': 'softmax',
+        'optimizer': 'sgd'
+    }}
 
 
 def compare_locations():
@@ -78,7 +113,7 @@ def build_tables2():
                      'air quality index SO2']
     features = []
     for obs in WeatherObservation.objects.filter(weather_location_id__in=location_dict.keys(),
-                                                 time_stamp__hour__in=(12, 13, 14, 15)).order_by("time_stamp"):
+                                                 time_stamp__hour__in=(10, 11, 12, 13, 14)).order_by("time_stamp"):
         timestamp.append(count)
         count += 1
         if timestamp is not None:
@@ -254,14 +289,14 @@ def learn():
                 'visbility']
 
     # Data split to make sure model works with unseen data
-    train_dataset = df.sample(frac=0.8, random_state=0)
+    train_dataset = df.sample(frac=0.9, random_state=0)
     test_dataset = df.drop(train_dataset.index)
 
-    try:
-        sns.pairplot(train_dataset[features], diag_kind="kde")
-        plt.show()
-    except:
-        pass
+    # try:
+    #     sns.pairplot(train_dataset[features], diag_kind="kde")
+    #     plt.show()
+    # except:
+    #     pass
 
     trainable_qualities = train_dataset[air_qualities]
     testable_qualities = test_dataset[air_qualities]
@@ -281,81 +316,99 @@ def learn():
         print('Normalized:', normalizer(first).numpy())
     for aq in air_qualities:
         train_labels = trainable_qualities.pop(aq)
-        linear_model = tf.keras.Sequential([
-            normalizer,
-            layers.Dense(64, activation='relu'),
-            layers.Dense(1)
-        ])
-        print(linear_model.summary())
-        print(linear_model.predict(train_dataset[:10]))
 
-        model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath='checkpoint.keras',
-            save_weights_only=True,
-            monitor='val_mean_absolute_error',
-            mode='min',
-            save_best_only=True,
-            verbose=1
-        )
+        global HP_NUM_UNITS
+        HP_NUM_UNITS = hp.HParam('num_units', hp.Discrete([128, 256, 512]))
 
-        callback_reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
-                                                                  factor=0.5,
-                                                                  min_lr=0,
-                                                                  patience=20,
-                                                                  verbose=1)
+        global HP_NUM_UNITS_2
+        HP_NUM_UNITS_2 = hp.HParam('num_units_2', hp.Discrete([64, 128, 256]))
 
-        callbacks = [model_checkpoint_callback]
+        global HP_NUM_UNITS_3
+        HP_NUM_UNITS_3 = hp.HParam('num_units_3', hp.Discrete([32, 64, 128]))
 
-        linear_model.compile(
+        global HP_NUM_UNITS_4
+        HP_NUM_UNITS_4 = hp.HParam('num_units_4', hp.Discrete([16, 32, 64]))
 
-            optimizer=tf.keras.optimizers.Adam(),
-            loss='mean_absolute_error',
-            metrics=['accuracy', tf.keras.metrics.MeanAbsoluteError()])
+        global METRIC_ACCURACY
+        METRIC_ACCURACY = 'val_accuracy'
 
-        history = linear_model.fit(
-            train_dataset, train_labels,
-            epochs=1000,
-            verbose=1,
-            validation_split=0.2,
-            callbacks=callbacks)
+        global METRIC_ACCURACY_TEST
+        METRIC_ACCURACY_TEST = 'accuracy_test'
 
-        try:
-            linear_model.load_weights('checkpoint.keras')
-        except:
-            print("ERROR LOADING WEIGHTS")
+        with tf.summary.create_file_writer(aq + '_logs/hparam_tuning').as_default():
+            hp.hparams_config(
+                hparams=[HP_NUM_UNITS,
+                         HP_NUM_UNITS_2,
+                         HP_NUM_UNITS_3,
+                         HP_NUM_UNITS_4],
+                metrics=[hp.Metric(METRIC_ACCURACY, display_name='Accuracy'),
+                         hp.Metric(METRIC_ACCURACY_TEST, display_name='Accuracy Test')],
+            )
 
-        plot_loss(history, aq)
+        session_num = 0
 
-        test_results = linear_model.evaluate(test_dataset, testable_qualities[aq], verbose=1)
-        print(test_results)
-        test_predictions = linear_model.predict(test_dataset).flatten()
-        print(len(test_predictions))
-        print(len(testable_qualities[aq]))
-        a = plt.axes(aspect='equal')
-        plt.scatter(testable_qualities[aq], test_predictions)
-        plt.xlabel('True Values: ' + str(aq))
-        plt.ylabel('Predictions: ' + str(aq))
-        lims = [0, 10]
-        plt.xlim(lims)
-        plt.ylim(lims)
-        _ = plt.plot(lims, lims)
-        plt.show()
-
-        error = test_predictions - testable_qualities[aq]
-        plt.hist(error, bins=25)
-        plt.xlabel('Prediction Error ' + str(aq))
-        _ = plt.ylabel('Count')
-        plt.show()
-        modelname = os.path.join(STATICFILES_DIRS[0], (str(aq) + "_model"))
-        linear_model.save(modelname)
+        for num_units in HP_NUM_UNITS.domain.values:
+            for num_units_2 in HP_NUM_UNITS_2.domain.values:
+                for num_units_3 in HP_NUM_UNITS_3.domain.values:
+                    for num_units_4 in HP_NUM_UNITS_4.domain.values:
+                        hparams = {HP_NUM_UNITS: num_units,
+                                   HP_NUM_UNITS_2: num_units_2,
+                                   HP_NUM_UNITS_3: num_units_3,
+                                   HP_NUM_UNITS_4: num_units_4}
+                        run_name = "run-%d" % session_num
+                        print('--- Starting trial: %s' % run_name)
+                        print({h.name: hparams[h] for h in hparams})
+                        run(aq + '_logs/hparam_tuning/' + run_name, hparams, normalizer, train_dataset,
+                            train_labels, test_dataset, testable_qualities[aq])
+                        session_num += 1
 
 
-def plot_loss(history, aq):
-    plt.plot(history.history['loss'], label='loss')
-    plt.plot(history.history['val_loss'], label='val_loss')
-    plt.ylim([0, 10])
-    plt.xlabel('Epoch')
-    plt.ylabel('Error [' + aq + ']')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
+def train_test_model(hparams, normalizer, train_dataset, train_labels, test_dataset, testable_qualities):
+    model = tf.keras.Sequential([
+        normalizer,
+        layers.Dense(hparams[HP_NUM_UNITS], activation='relu'),
+        layers.Dense(hparams[HP_NUM_UNITS_2], activation='relu'),
+        layers.Dense(hparams[HP_NUM_UNITS_3], activation='relu'),
+        layers.Dense(hparams[HP_NUM_UNITS_4], activation='softmax'),
+        layers.Dense(1)
+    ])
+    model.compile(optimizer='adam',
+                  loss=tf.keras.losses.Huber(),
+                  metrics=['accuracy'])
+
+    earlyStop = tf.keras.callbacks.EarlyStopping(
+        monitor='val_accuracy', min_delta=0.005, patience=100, verbose=0, mode='auto', restore_best_weights=True
+    )
+
+    callback_reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss',
+                                                              factor=0.5,
+                                                              min_lr=0,
+                                                              patience=20,
+                                                              verbose=0)
+
+    model.fit(train_dataset, train_labels,
+              epochs=1000,
+              validation_split=0.2,
+              callbacks=[earlyStop, callback_reduce_lr],
+              verbose=0)
+    _, accuracy = model.evaluate(test_dataset, testable_qualities)
+    test_predictions = model.predict(test_dataset).flatten()
+    total = 0
+    correct = 0
+    for i, j in zip(test_predictions, testable_qualities):
+        if int(i) == int(j):
+            correct += 1
+        total += 1
+    percentageCorrect = (correct / total) * 100
+    print(str(percentageCorrect) + "% Accurate")
+    print(str(accuracy) + "Accuracy Value")
+    return accuracy, percentageCorrect
+
+
+def run(run_dir, hparams, normalizer, train_dataset, train_labels, test_dataset, testable_qualities):
+    with tf.summary.create_file_writer(run_dir).as_default():
+        hp.hparams(hparams)  # record the values used in this trial
+        accuracy, test_accuracy = train_test_model(hparams, normalizer, train_dataset, train_labels, test_dataset,
+                                                   testable_qualities)
+        tf.summary.scalar(METRIC_ACCURACY, accuracy, step=1)
+        tf.summary.scalar(METRIC_ACCURACY_TEST, test_accuracy, step=1)
