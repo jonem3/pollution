@@ -151,12 +151,24 @@ def learn():
                 'weather type',
                 'visbility']
 
+    columns = ['wind gust',
+               'temperature',
+               'wind speed',
+               'screen relative humidity',
+               'weather type',
+               'visbility',
+               'air quality index NO2',
+               'air quality index O3',
+               'air quality index PM10',
+               'air quality index PM25',
+               'air quality index SO2']
+
     # Data split to make sure model works with unseen data
     train_dataset = df.sample(frac=0.8, random_state=0)
     test_dataset = df.drop(train_dataset.index)
 
     try:
-        sns.pairplot(train_dataset[features], diag_kind="kde")
+        sns.pairplot(train_dataset[columns], diag_kind="kde")
         plt.show()
     except:
         pass

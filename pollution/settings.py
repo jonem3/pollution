@@ -42,12 +42,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'pollution',
-        #'NAME': 'pollution_local',
         'USER': 'pollute',
-        #'PASSWORD': 'Scopyu7Queg:',
         'PASSWORD': 's1j2h3g4s5',
         'HOST': '3.10.154.114',
-        #'HOST': '127.0.0.1',
         'PORT': '3306',
     }
 }
