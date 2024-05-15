@@ -38,16 +38,7 @@ SECURE_SSL_REDIRECT = True
 
 ALLOWED_HOSTS = ['*']
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'pollution',
-        'USER': 'pollute',
-        'PASSWORD': 's1j2h3g4s5',
-        'HOST': '3.10.154.114',
-        'PORT': '3306',
-    }
-}
+# DATABASE INFORMATION REDACTED
 
 LOGGING = {
     'version': 1,
