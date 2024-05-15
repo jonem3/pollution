@@ -139,11 +139,11 @@
 
     # ROOT block
     - block:
-        - name: Install python3 requirements
+        - name: Install python3 requirements.txt
           pip:
             executable: /usr/bin/pip3
             state: present
-            requirements: /home/ubuntu/pollution/requirements
+            requirements: /home/ubuntu/pollution/requirements.txt
 
       become: yes
       become_user: root
