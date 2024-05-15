@@ -60,7 +60,7 @@ torchaudio==0.7.0
 torchvision==0.8.1+cu101
 typing-extensions==3.7.4.3
 update==0.0.1
-urllib3==1.26.2
+urllib3==1.26.18
 Werkzeug==1.0.1
 wrapt==1.12.1
 zipp==3.4.0
