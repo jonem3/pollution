@@ -1,8 +1,13 @@
 # Pollution AI Predictor
 This is a project to develop an AI that will be able
-to predict pollution levels based upon a weather forecast.
-The algorithm to achieve this will be based upon NEAT
-which will be trained using observations of pollution and weather.
+to predict pollution levels based upon a weather forecast from the UK Met Office.
+
+![Pollution Chart](./README_IMAGES/PollutionRAtings.png)
+
+The algorithm to achieve this will be using TensorFlow
+which will be trained using observations of pollution and weather. And then displayed on a web interface as follows:
+
+![Final Project Interface](./README_IMAGES/ImageWithChart.png)
 
 ### NOTE: The ML model structure present in this code is not the final one used in the project. This one is significantly more simple, as the final one was written directly on the server that hosted this project.
 #### All Other functionality is as executed in the final project.
